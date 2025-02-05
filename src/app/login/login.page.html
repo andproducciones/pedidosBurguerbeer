@@ -1,0 +1,29 @@
+<ion-content [fullscreen]="true" class="login-page">
+  <div class="login-container">
+
+    <img src="assets/logo.png" alt="Logo" class="logo" />
+
+    <h1 class="login-title">INICIAR SESIÓN</h1>
+
+    <ion-card>
+      <ion-card-content>
+        <ion-item>
+          <ion-input [(ngModel)]="email" type="text" placeholder="Correo"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-input [(ngModel)]="password" type="password" placeholder="Contraseña"></ion-input>
+        </ion-item>
+        <ion-button expand="block" (click)="login()" [disabled]="bloqueado" class="login-button">
+          {{ bloqueado ? 'Bloqueado' : 'Ingresar' }}
+        </ion-button>
+
+        <div class="buttons-container">
+          <ion-button expand="block" fill="outline" (click)="crearCuenta()">Crear Cuenta</ion-button>
+          <ion-button expand="block" fill="clear" (click)="recuperarPassword()">Recuperar Contraseña</ion-button>
+        </div>
+        
+      </ion-card-content>
+    </ion-card>
+
+  </div>
+</ion-content>

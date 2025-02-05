@@ -1,0 +1,46 @@
+/* Estilo general para el fondo amarillo */
+.splash-page {
+  --background: #fff; /* Fondo amarillo (color inspirado en el logo) */
+  display: flex;
+  justify-content: center; /* Centrar horizontalmente */
+  align-items: center; /* Centrar verticalmente */
+  text-align: center;
+  height: 100vh; /* Ocupa el 100% de la altura de la pantalla */
+  overflow: hidden; /* Evita cualquier scroll */
+  margin: 0; /* Elimina márgenes */
+  padding: 0; /* Elimina padding */
+}
+
+/* Contenedor principal */
+.splash-container {
+  display: flex;
+  flex-direction: column; /* Alinear verticalmente */
+  justify-content: center; /* Centrar contenido verticalmente */
+  align-items: center; /* Centrar contenido horizontalmente */
+  animation: fadeIn 2s ease-in-out;
+  height: 100vh;
+}
+
+/* Estilo del logo */
+.logo {
+  width: 200px; /* Ajustar el tamaño del logo */
+  height: auto; /* Mantener proporciones */
+  margin-bottom: 20px; /* Separación del texto */
+}
+
+/* Texto de carga */
+.splash-title {
+  font-size: 1.5rem; /* Tamaño de letra */
+  font-weight: bold;
+  color: #000; /* Color negro para contraste */
+}
+
+/* Animación de entrada */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

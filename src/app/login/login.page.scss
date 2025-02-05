@@ -1,0 +1,90 @@
+// Estilos generales para la página de login
+.login-page {
+  --background: #f8f8f8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  height: 100vh;
+}
+
+// Contenedor principal del formulario
+.login-container {
+  height: 90vh;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+// Logo de la aplicación
+.logo {
+  width: 150px;
+  margin: 20px auto;
+}
+
+// Título "Iniciar Sesión"
+.login-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 10px 0;
+  color: #333;
+}
+
+// Tarjeta de Login
+ion-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+}
+
+// Inputs de usuario y contraseña
+ion-item {
+  --background: transparent;
+  --border-color: #ccc;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
+
+// Botón "Ingresar"
+.login-button {
+  margin-top: 20px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  --background: #180ad2;
+  --color: #fff;
+  border-radius: 5px;
+}
+
+// Contenedor de botones adicionales (alineados horizontalmente)
+.buttons-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+// Estilo para ambos botones alineados
+ion-button {
+  flex: 1;
+  text-align: center;
+}
+
+// Botón "Crear Cuenta" (verde)
+ion-button.crear-cuenta {
+  --background: #000000; // Verde
+  --background-hover: #45a049;
+  --color: white;
+  border-radius: 5px;
+}
+
+// Botón "Recuperar Contraseña" (con borde azul)
+ion-button.recuperar-password {
+  --color: #180ad2;
+  --background: transparent;
+  --border-color: #180ad2;
+  border: 1px solid #180ad2;
+  border-radius: 5px;
+}

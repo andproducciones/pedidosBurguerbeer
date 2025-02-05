@@ -1,0 +1,38 @@
+
+<ion-content class="crear-cuenta-page">
+  <div class="crear-cuenta-container">
+    <h1 class="crear-cuenta-title">Crear cuenta</h1>
+
+    <ion-card>
+      <ion-card-content>
+        <ion-item>
+          <ion-input [(ngModel)]="nombre" type="text" placeholder="Nombre"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-input [(ngModel)]="apellido" type="text" placeholder="Apellido"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-input [(ngModel)]="cedula" type="text" placeholder="Cédula"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-input [(ngModel)]="correo" type="email" placeholder="Correo Electrónico"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-input [(ngModel)]="clave" type="password" placeholder="Contraseña"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-input [(ngModel)]="confirmPassword" type="password" placeholder="Confirmar Contraseña"></ion-input>
+        </ion-item>
+
+        <ion-button expand="block" (click)="registrarUsuario()" class="crear-cuenta-button btn btn-primary" style="background: brown;">Registrarse</ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-button fill="clear" (click)="volverLogin()">Volver al Login</ion-button>
+  </div>
+</ion-content>
