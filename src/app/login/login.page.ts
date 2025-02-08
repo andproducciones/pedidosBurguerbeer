@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { AlertController, NavController } from '@ionic/angular';
 import { LoginService } from '../services/login/login.service';
 import { EncryptionService } from '../services/encriptacion/encriptacion.service';
+import { Network } from '@capacitor/network'; // Importa el servicio de Network
+import { timeout } from 'rxjs/operators';
 
 @Component({
   selector: 'app-login',
@@ -25,7 +27,18 @@ export class LoginPage {
     private encryptionService: EncryptionService
   ) { }
 
-  ngOnInit() {
+  async ngOnInit() {
+
+    // 🔍 Verificar conexión a Internet
+    const status = await Network.getStatus();
+    if (!status.connected) {
+      alert('Sin conexión a Internet. Verifica tu conexión e intenta nuevamente.');
+      return; // Detiene el flujo si no hay conexión
+    }else{
+      alert('Conexión a Internet establecida.');
+    }
+
+
     const storedUserData = localStorage.getItem('userData');
 
     if (storedUserData) {
@@ -51,36 +64,47 @@ export class LoginPage {
       this.showAlert('Cuenta Bloqueada', `Inténtalo de nuevo en ${this.tiempoRestante} segundos.`);
       return;
     }
-
+  
     if (!this.cedula || !this.password) {
-      this.showAlert('Error', 'Ingrese su cedula y contraseña.');
+      this.showAlert('Error', 'Ingrese su cédula y contraseña.');
       return;
     }
-      //console.log(this.cedula, this.password);
-
-    this.loginService.login(this.cedula, this.password).subscribe( response => {
-      //console.log(response);
-      if (response.respuesta.estado === true) {
-        //console.log(response);
-        
-        const datosCifrados = this.encryptionService.cifrarDatos(response.data);
-        localStorage.setItem('userData', datosCifrados);
-        
-        this.router.navigate(['/pedidos']); // Redirigir al menú después del login
-        this.intentosFallidos = 0; // Reiniciar intentos al ingresar correctamente
-      } else {
-        this.intentosFallidos++;
-        this.showAlert('Error', 'Credenciales incorrectas.');
-
-        if (this.intentosFallidos >= 3) {
-          this.bloquearUsuario();
+  
+    this.loginService.login(this.cedula, this.password).pipe(
+      timeout(10000) // Tiempo límite de 10 segundos
+    ).subscribe(
+      response => {
+        console.log(response);
+        if (response.respuesta.estado === true) {
+          const datosCifrados = this.encryptionService.cifrarDatos(response.data);
+          localStorage.setItem('userData', datosCifrados);
+          this.router.navigate(['/pedidos']); // Redirigir al menú
+          this.intentosFallidos = 0;
+        } else {
+          this.intentosFallidos++;
+          this.showAlert('Error', 'Credenciales incorrectas.');
+          if (this.intentosFallidos >= 3) {
+            this.bloquearUsuario();
+          }
+        }
+      },
+      error => {
+        console.error('Error detectado:', error);
+        if (error.status === 0) {
+          this.showAlert('Error', 'No se pudo conectar con el servidor. Por favor, verifica tu conexión.');
+        } else if (error.status >= 400 && error.status < 500) {
+          this.showAlert('Error', `Error del cliente: ${error.statusText || 'Solicitud incorrecta.'}`);
+        } else if (error.status >= 500) {
+          this.showAlert('Error', 'Error en el servidor. Por favor, intenta más tarde.');
+        } else if (error.name === 'TimeoutError') {
+          this.showAlert('Error', 'La solicitud al servidor ha tardado demasiado.');
+        } else {
+          this.showAlert('Error', `Error desconocido: ${JSON.stringify(error)}`);
         }
       }
-    },error => {
-      console.error('Error detectado:', error); // Muestra el error en la consola
-      this.showAlert('Error', `No se pudo conectar con el servidor. Detalles: ${error.message || JSON.stringify(error)}`);
-    });
+    );
   }
+  
 
   bloquearUsuario() {
     this.bloqueado = true;
