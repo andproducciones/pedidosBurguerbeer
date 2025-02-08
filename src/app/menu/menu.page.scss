@@ -1,42 +1,164 @@
-// Estilos generales del menú
+/* Menú lateral */
 ion-menu {
-    --background: #ffffff;
-    color: white;
-  }
-  
-  // Estilos del toolbar
-  ion-toolbar {
-    --background: #4A90E2;
-    --color: white;
-  }
-  
-  // Iconos del menú
-  ion-icon {
-    color: #4A90E2;
-    font-size: 1.6rem;
-  }
-  // Iconos del menú y botón de menú (hamburguesa)
+  --background: #f0b323;
+  color: white;
+}
+
+/* Toolbar (Encabezado principal) */
+ion-toolbar {
+  --background: #f0b323;
+  --color: white;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 10px;
+}
+
+/* Botón de menú */
 ion-menu-button {
-    color: white !important; // ✅ Establece el color del icono en blanco
-  }
-  
-  ion-avatar {
-    background-color: #f3f3f3;
-    border-radius: 50%;
-  }
-  
-  ion-item {
-    border-bottom: 1px solid #e0e0e0;
-  }
-  
-  ion-fab-button {
-    --box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-  }
+  color: white;
+}
 
-  .contactos ion-icon {
-    font-size: 2rem;
-  }
+/* Iconos del menú */
+ion-icon {
+  font-size: 1.6rem;
+}
+.header-md{
+  box-shadow: none;
+}
+/* Contenedor de productos con scroll vertical */
+.productos-contenedor {
+  height: 25vh;
+  overflow-y: auto;
+  padding-right: 20px;
+  //margin-top: 10px;
+  gap: 10px;
+}
 
-  .icono-contacto ion-icon {
-    font-size: 3.5rem;
-  }
+/* Tarjetas de productos */
+.producto-card {
+  width: 100%;
+  border-radius: 10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  background-color: #fff;
+  padding: 0px;
+  transition: transform 0.2s ease-in-out;
+}
+
+.producto-card ion-card-content{
+  padding: 5px;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.producto-card:hover {
+  transform: scale(1.05);
+}
+
+/* Imagen del producto */
+.producto-card ion-img {
+  width: 100%;
+  height: 100px;
+  object-fit: contain;
+}
+
+/* Contenedor del pedido con scroll */
+.pedido-container {
+  height: 50vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: none;
+  margin: 0;
+  //overflow-y: auto;
+}
+
+.pedido-scroll {
+  height: 43vh;
+  overflow-y: auto;
+  //padding-top: 10px;
+  margin: 0;
+}
+
+.btns_productos{
+
+  padding: 5px;
+}
+
+.btns_productos ion-button{
+
+  padding: 0;
+  margin: 0;
+  padding:0 5px;
+  --border-radius: 0px; 
+  --padding-top: 0px; 
+  --padding-bottom: 0px; 
+  --padding-start: 0; 
+  --padding-end: 0;
+}
+
+.producto-label{
+  margin-top: 0px; 
+  margin-bottom: 0px;
+  max-width: 78%;
+}
+
+.producto{
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  
+}
+
+.pedido-scroll ion-item{
+  margin-right: 0;
+  padding-right: 0;
+  --padding-start: 0px;
+  --inner-padding-end: 0px;
+}
+
+ion-card-header{
+  padding-bottom: 0px;
+}
+
+/* Sección fija de Total y Mesa */
+.total-mesa {
+  position: fixed;
+  display: flex;
+  justify-content: space-between;
+  border: none;
+  bottom: 50px;
+  left: 0;
+  width: 100%;
+  background: white;
+  //padding: 10px 0;
+  //box-shadow: 0px -2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+.total-mesa ion-item{
+  border: none;
+  font-size: 21pt;
+}
+
+/* Botones fijos en la parte inferior */
+.botones-fijos {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  background: white;
+  padding: 10px 0;
+  //box-shadow: 0px -2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+.botones-fijos ion-button {
+  flex: 1;
+  margin: 0 5px;
+}

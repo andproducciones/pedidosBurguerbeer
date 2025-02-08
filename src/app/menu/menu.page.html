@@ -1,73 +1,106 @@
-<ion-menu contentId="main-content">
-  <ion-header>
-    <ion-toolbar>
-      <ion-title>Menú</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
-  <ion-content>
-    <ion-list>
-      <ion-item lines="none">
-        <ion-label>
-          <h2>{{ userData?.nom_persona }}</h2>
-        </ion-label>
-      </ion-item>
-
-      <ion-item (click)="irContactos()">
-        <ion-icon slot="start" name="book-outline"></ion-icon>
-        <ion-label>Contactos</ion-label>
-      </ion-item>
-      <ion-item (click)="irPerfil()">
-        <ion-icon slot="start" name="person-circle-outline"></ion-icon>
-        <ion-label>Perfil</ion-label>
-      </ion-item>
-      <ion-item (click)="cerrarSesion()">
-        <ion-icon slot="start" name="log-out-outline"></ion-icon>
-        <ion-label>Cerrar Sesión</ion-label>
-      </ion-item>
-    </ion-list>
-  </ion-content>
-</ion-menu>
-
 <div class="ion-page" id="main-content">
   <ion-header>
     <ion-toolbar>
+      <!-- Botón de Volver a Pedidos -->
       <ion-buttons slot="start">
-        <ion-menu-button></ion-menu-button>
+        <ion-button (click)="irPedidos()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+        </ion-button>
       </ion-buttons>
-      <ion-title>Contactos</ion-title>
+
+      <ion-title class="header-title">BURGERBBER</ion-title>
+
+      <ion-buttons slot="end">
+        <ion-button fill="clear" color="light" (click)="cerrarSesion()">
+          <ion-icon name="power-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
     </ion-toolbar>
   </ion-header>
 
   <ion-content>
-    <ion-list>
+    <!-- Título y Búsqueda de Productos -->
+    <ion-item>
+      <ion-input placeholder="Buscar productos" (ionInput)="buscarProducto($event)" style="padding-top: 10px;"></ion-input>
+      <ion-icon name="search-outline" slot="end"></ion-icon>
+    </ion-item>
 
-      <div class="contactos">
-      <ion-item *ngFor="let contacto of contactos">
-        <div class="icono-contacto">
-        <ion-icon slot="start" name="person-circle-outline"></ion-icon> 
+    <div class="productos-contenedor">
+      <ion-grid>
+        <ion-row>
+          <ion-col size="4" size-md="3" size-lg="2" *ngFor="let producto of productosFiltrados">
+            <ion-card (click)="agregarProducto(producto.codproducto)" class="producto-card">
+              <ion-card-content>
+                <ion-label>{{ producto.producto}}</ion-label>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+
+    <!-- Sección de Productos Seleccionados (Pedido) -->
+    <ion-card class="pedido-container">
+      <ion-card-header>
+        <ion-card-title style="padding-bottom: 5px;">Pedido</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="pedido-scroll">
+          <ion-list>
+            <ion-item *ngFor="let item of pedido">
+              <div class="producto">
+                <div class="producto-label">
+                  <ion-label>
+                    {{ item.cantidad }} x {{ item.producto }}
+                  </ion-label>
+                  <ion-label style="margin-left: 20px;">{{ item.observaciones }}</ion-label>
+                </div>
+                <div class="btns_productos" *ngIf="item.preparar == 1">
+                 
+                   <!-- 📝 Botón Editar Producto -->
+                   <ion-button color="primary" fill="clear" (click)="abrirEditarProducto(item)">
+                    <ion-icon name="create-outline"></ion-icon>
+                  </ion-button>
+                  
+
+                  <!-- Botón Eliminar -->
+                  <ion-button color="danger" fill="clear" slot="end" (click)="eliminarProducto(item.correlativo)">
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </ion-button>
+                </div>
+              </div>
+            </ion-item>
+          </ion-list>
         </div>
-        <ion-label>
-          <h2>{{ contacto.nombre_contacto }} {{ contacto.apellido_contacto }}</h2>
-          <p>{{ contacto.telefono_contacto }}</p>
-          <p>{{ contacto.correo_contacto }}</p>
-        </ion-label>
-        <ion-buttons slot="end">
-          <ion-button fill="clear" color="primary" (click)="editarContacto(contacto.codigo_contacto,contacto)">
-            <ion-icon name="create-outline"></ion-icon>
-          </ion-button>
-          <ion-button fill="clear" color="danger" (click)="eliminarContacto(contacto.codigo_contacto)">
-            <ion-icon name="trash-outline"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-item>
-      </div>
-    </ion-list>
+      </ion-card-content>
+    </ion-card>
 
-    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-      <ion-fab-button (click)="abrirFormularioAgregar(userData?.cod_persona)">
-        <ion-icon name="add-outline"></ion-icon>
-      </ion-fab-button>
-    </ion-fab>
+ 
+    
   </ion-content>
+
+  <!-- Sección fija de Total y Mesa -->
+  <div class="total-mesa">
+    <ion-item>
+      <ion-label><strong>Numero:</strong></ion-label>
+      <ion-label slot="end"><strong>{{ mesa }}</strong></ion-label>
+    </ion-item>
+    <ion-item>
+      <ion-label><strong>Total:</strong></ion-label>
+      <ion-label slot="end"><strong>${{ total }}</strong></ion-label>
+    </ion-item>
+  </div>
+
+  <!-- Barra fija con botones -->
+  <div class="botones-fijos">
+    <ion-button color="success" expand="full" (click)="prepararOrden()">
+      <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+      Preparar
+    </ion-button>
+
+    <ion-button color="danger" expand="full" (click)="imprimirPreCuenta()" >
+      <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+      Anular
+    </ion-button>
+  </div>
 </div>

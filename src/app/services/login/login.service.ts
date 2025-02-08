@@ -1,26 +1,27 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { GLOBAL } from '../GLOBAL';
 
 @Injectable({
   providedIn: 'root'
 })
 export class LoginService {
-  private API_URL = 'http://localhost/agenda/loggin.php'; // Cambia esto a la URL de tu backend
+  private readonly API_URL = GLOBAL.url+'login.php'; // Cambia esto a la URL de tu backend
 
   constructor(private http: HttpClient) { }
 
   // Método para iniciar sesión con Headers personalizados
-  login(email: string, password: string): Observable<any> {
+  login(usuario: string, clave: string): Observable<any> {
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     });
 
-    return this.http.post(this.API_URL, { accion: 'login', email: email, password: password }, { headers:headers });
+    return this.http.post<any>(this.API_URL, { accion: 'login', usuario: usuario, clave: clave }, { headers });
+  
+
   }
-
-
   // registrar(datos: any): Observable<any> {
   //   const headers = new HttpHeaders({
   //     'Content-Type': 'application/json',

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController, NavController } from '@ionic/angular';
 import { LoginService } from '../services/login/login.service';
+import { EncryptionService } from '../services/encriptacion/encriptacion.service';
 
 @Component({
   selector: 'app-login',
@@ -10,7 +11,7 @@ import { LoginService } from '../services/login/login.service';
   standalone: false
 })
 export class LoginPage {
-  email: string = '';
+  cedula: string = '';
   password: string = '';
   intentosFallidos: number = 0;
   bloqueado: boolean = false;
@@ -20,8 +21,30 @@ export class LoginPage {
   constructor(
     private loginService: LoginService,
     private router: Router,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private encryptionService: EncryptionService
   ) { }
+
+  ngOnInit() {
+    const storedUserData = localStorage.getItem('userData');
+
+    if (storedUserData) {
+      // 🔓 Intentar descifrar los datos (si están encriptados)
+      const userData = this.encryptionService.descifrarDatos(storedUserData);
+      ////console.log(userData);
+      if (userData) {
+        //  console.log("🔓 Usuario autenticado:", userData);
+        this.router.navigate(['/pedidos']); // 🔄 Redirige a menú si hay usuario
+      } else {
+        ////console.log("⚠️ Error al descifrar los datos, eliminando...");
+        this.router.navigate(['/login']);
+        localStorage.removeItem('userData'); // Elimina datos corruptos
+      }
+    }
+  }
+
+
+  
 
   async login() {
     if (this.bloqueado) {
@@ -29,18 +52,21 @@ export class LoginPage {
       return;
     }
 
-    if (!this.email || !this.password) {
-      this.showAlert('Error', 'Ingrese su email y contraseña.');
+    if (!this.cedula || !this.password) {
+      this.showAlert('Error', 'Ingrese su cedula y contraseña.');
       return;
     }
-      console.log(this.email, this.password);
+      //console.log(this.cedula, this.password);
 
-    this.loginService.login(this.email, this.password).subscribe( response => {
-      console.log(response);
+    this.loginService.login(this.cedula, this.password).subscribe( response => {
+      //console.log(response);
       if (response.respuesta.estado === true) {
-        console.log(response);
-        localStorage.setItem('userData', JSON.stringify(response.data));
-        this.router.navigate(['/menu']); // Redirigir al menú después del login
+        //console.log(response);
+        
+        const datosCifrados = this.encryptionService.cifrarDatos(response.data);
+        localStorage.setItem('userData', datosCifrados);
+        
+        this.router.navigate(['/pedidos']); // Redirigir al menú después del login
         this.intentosFallidos = 0; // Reiniciar intentos al ingresar correctamente
       } else {
         this.intentosFallidos++;
@@ -50,8 +76,9 @@ export class LoginPage {
           this.bloquearUsuario();
         }
       }
-    }, error => {
-      this.showAlert('Error', 'No se pudo conectar con el servidor.');
+    },error => {
+      console.error('Error detectado:', error); // Muestra el error en la consola
+      this.showAlert('Error', `No se pudo conectar con el servidor. Detalles: ${error.message || JSON.stringify(error)}`);
     });
   }
 

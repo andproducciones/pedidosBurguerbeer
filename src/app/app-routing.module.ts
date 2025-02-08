@@ -24,12 +24,20 @@ const routes: Routes = [
     loadChildren: () => import('./recuperar-contrasena/recuperar-contrasena.module').then( m => m.RecuperarContrasenaPageModule)
   },
   {
-    path: 'menu',
+    path: 'menu/:id',
     loadChildren: () => import('./menu/menu.module').then( m => m.MenuPageModule)
   },
   {
     path: 'perfil',
     loadChildren: () => import('./perfil/perfil.module').then( m => m.PerfilPageModule)
+  },
+  {
+    path: 'pedidos',
+    loadChildren: () => import('./pedidos/pedidos.module').then( m => m.PedidosPageModule)
+  },
+  {
+    path: 'modal-editar-producto',
+    loadChildren: () => import('./modal-editar-producto/modal-editar-producto.module').then( m => m.ModalEditarProductoPageModule)
   }
 ];
 

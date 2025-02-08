@@ -4,18 +4,17 @@ import { FormsModule } from '@angular/forms';
 
 import { IonicModule } from '@ionic/angular';
 
-import { MenuPageRoutingModule } from './menu-routing.module';
+import { ModalEditarProductoPageRoutingModule } from './modal-editar-producto-routing.module';
 
-import { MenuPage } from './menu.page';
+import { ModalEditarProductoPage } from './modal-editar-producto.page';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    MenuPageRoutingModule
+    ModalEditarProductoPageRoutingModule
   ],
-  declarations: [],
   
 })
-export class MenuPageModule {}
+export class ModalEditarProductoPageModule {}

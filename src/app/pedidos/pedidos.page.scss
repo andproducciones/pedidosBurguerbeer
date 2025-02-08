@@ -1,0 +1,73 @@
+ion-menu {
+  --background: #f0b323;
+  color: white;
+}
+
+/* Toolbar (Encabezado principal) */
+ion-toolbar {
+  --background: #f0b323;
+  --color: white;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 10px;
+}
+
+/* Botón de menú */
+ion-menu-button {
+  color: white;
+}
+
+/* Iconos del menú */
+ion-icon {
+  font-size: 1.6rem;
+}
+
+ion-card {
+  padding: 0;
+}
+
+.header-md {
+  box-shadow: none;
+}
+
+/* Estilos generales de las mesas */
+.mesa-card {
+  text-align: center;
+  border-radius: 10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out;
+  background-color: white;
+  padding: 0px;
+  margin: 0px;
+}
+
+.mesa-card:hover {
+  transform: scale(1.05);
+}
+
+/* Mesas con estatus 2 (Ocupadas o en uso) */
+.mesa-verde {
+  background-color: #d4edda; /* Verde claro */
+  color: #155724; /* Texto verde oscuro */
+  border: 1px solid #c3e6cb; /* Borde verde */
+}
+
+/* Nueva Clase para Mesas con Productos en `detalle_temp` */
+.mesa-con-productos {
+  background-color: #28a745 !important; /* Verde intenso */
+  color: white !important;
+  font-weight: bold;
+  border: 2px solid #218838;
+}
+
+.mesa-numero {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.mesa-cliente {
+  font-size: 1rem;
+  color: #555;
+  margin-top: 5px;
+}

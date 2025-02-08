@@ -1,0 +1,43 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ producto.producto }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrarModal()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-item>
+   
+    <ion-label>{{ observacionesprevias }}</ion-label>
+  </ion-item>
+</ion-header>
+
+<ion-content class="ion-padding">
+  
+
+  <ion-list>
+    <div *ngFor="let atributo of atributos">
+      <ion-item-divider>
+        <ion-label>{{ atributo.nombre.replace('_', ' ') }}</ion-label>
+      </ion-item-divider>
+
+      <ion-radio-group [(ngModel)]="seleccionados[atributo.id]">
+        <ion-item *ngFor="let tipo of atributo.tipos" (click)="seleccionados[atributo.id] = tipo">
+          <ion-label>{{ tipo }}</ion-label>
+          <ion-radio slot="start" [value]="tipo"></ion-radio>
+        </ion-item>
+      </ion-radio-group>
+    </div>
+  </ion-list>
+  <ion-item>
+    <ion-label position="stacked">Observaciones</ion-label>
+    <ion-textarea [(ngModel)]="observaciones"></ion-textarea>
+  </ion-item>
+</ion-content>
+
+<ion-footer class="fixed-footer">
+ 
+    <ion-button expand="full" (click)="guardarCambios()">Guardar Cambios</ion-button>
+  
+</ion-footer>
