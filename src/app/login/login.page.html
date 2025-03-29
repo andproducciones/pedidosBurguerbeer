@@ -8,16 +8,19 @@
     <ion-card>
       <ion-card-content>
         <ion-item>
-          <ion-input [(ngModel)]="cedula" type="text" placeholder="Cedula"></ion-input>
+          <ion-label position="floating">Cédula</ion-label>
+          <ion-input [(ngModel)]="cedula" type="text"></ion-input>
         </ion-item>
         <ion-item>
-          <ion-input [(ngModel)]="password" type="password" placeholder="Contraseña"></ion-input>
+          <ion-label position="floating">Contraseña</ion-label>
+          <ion-input [(ngModel)]="password" type="password"></ion-input>
         </ion-item>
         <ion-button expand="block" (click)="login()" [disabled]="bloqueado" class="login-button">
           {{ bloqueado ? 'Bloqueado' : 'Ingresar' }}
         </ion-button>        
       </ion-card-content>
     </ion-card>
+    
 
   </div>
 </ion-content>

@@ -1,0 +1,33 @@
+ion-content {
+  --background: #ffffff;
+  height: 100%;
+  overflow: hidden; // ❌ Elimina scroll
+}
+
+.sin-conexion-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; // ⬆️ Centro vertical
+  align-items: center;     // ⬅️ Centro horizontal
+  height: 100%;
+  text-align: center;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.sin-conexion-container ion-icon {
+  font-size: 60px;
+  color: red;
+  margin-bottom: 12px;
+}
+
+h2 {
+  margin-top: 0;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+p {
+  font-size: 16px;
+  color: #555;
+}

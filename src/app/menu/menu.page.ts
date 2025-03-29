@@ -76,45 +76,45 @@ this.route.paramMap.subscribe(params => {
 }
 
 async mostrarModalNombreCliente() {
-    const alert = await this.alertCtrl.create({
-        header: "Nombre del cliente",
-        inputs: [
-            {
-                name: "nombre",
-                type: "text",
-                placeholder: "Ej: Juan Pérez",
-            },
-        ],
-        buttons: [
-            {
-                text: "Cancelar",
-                role: "cancel",
-                handler: () => {
-                    //console.log("⚠️ Se canceló el ingreso del nombre.");
-                    this.router.navigate(['/pedidos']);
-                    return false; // Agregar un return explícito
-                },
-            },
-            {
-                text: "Guardar",
-                handler: (data: any) => {
-                    if (!data.nombre.trim()) {
-                        console.warn("⚠️ Nombre inválido.");
-                        return false; // Evitar que cierre el modal si el campo está vacío
-                    }
+  const alert = await this.alertCtrl.create({
+    header: "Nombre del cliente",
+    inputs: [
+      {
+        name: "nombre",
+        type: "text",
+        placeholder: "Ej: Juan Pérez",
+        value: 'Cliente',
+      },
+    ],
+    buttons: [
+      {
+        text: "Cancelar",
+        role: "cancel",
+        handler: () => {
+          // 🔴 Aquí vaciamos el nombre de la mesa
+          this.actualizarNombreMesa('');
+          this.router.navigate(['/pedidos']);
+          return false;
+        },
+      },
+      {
+        text: "Guardar",
+        handler: (data: any) => {
+          if (!data.nombre.trim()) {
+            console.warn("⚠️ Nombre inválido.");
+            return false;
+          }
 
-                    //console.log("🟢 Nombre ingresado:", data.nombre);
-                    this.actualizarNombreMesa(data.nombre);
-                    //this.cargarPedidoMesa();
-                    //this.obtenerProductos()
-                    return true;
-                },
-            },
-        ],
-    });
+          this.actualizarNombreMesa(data.nombre);
+          return true;
+        },
+      },
+    ],
+  });
 
-    await alert.present();
+  await alert.present();
 }
+
 
 // 🆕 Función para actualizar el nombre de la mesa
 actualizarNombreMesa(nombre: string) {

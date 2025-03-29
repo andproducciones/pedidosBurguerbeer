@@ -1,9 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { AlertController, NavController } from '@ionic/angular';
+import { AlertController, LoadingController } from '@ionic/angular';
 import { LoginService } from '../services/login/login.service';
 import { EncryptionService } from '../services/encriptacion/encriptacion.service';
-import { Network } from '@capacitor/network'; // Importa el servicio de Network
 import { timeout } from 'rxjs/operators';
 
 @Component({
@@ -17,69 +16,66 @@ export class LoginPage {
   password: string = '';
   intentosFallidos: number = 0;
   bloqueado: boolean = false;
-  tiempoRestante: number = 60; // 1 minuto en segundos
+  tiempoRestante: number = 60;
   interval: any;
 
   constructor(
     private loginService: LoginService,
     private router: Router,
     private alertController: AlertController,
-    private encryptionService: EncryptionService
-  ) { }
+    private encryptionService: EncryptionService,
+    private loadingController: LoadingController
+  ) {}
 
-  async ngOnInit() {
-
-    // 🔍 Verificar conexión a Internet
-    const status = await Network.getStatus();
-    if (!status.connected) {
-      alert('Sin conexión a Internet. Verifica tu conexión e intenta nuevamente.');
-      return; // Detiene el flujo si no hay conexión
-    }else{
-      alert('Conexión a Internet establecida.');
-    }
-
-
+  async ionViewWillEnter() {
     const storedUserData = localStorage.getItem('userData');
 
     if (storedUserData) {
-      // 🔓 Intentar descifrar los datos (si están encriptados)
       const userData = this.encryptionService.descifrarDatos(storedUserData);
-      ////console.log(userData);
+
       if (userData) {
-        //  console.log("🔓 Usuario autenticado:", userData);
-        this.router.navigate(['/pedidos']); // 🔄 Redirige a menú si hay usuario
+        const lastRoute = localStorage.getItem('lastRoute') || '/pedidos';
+        this.router.navigate([lastRoute]);
+        localStorage.removeItem('lastRoute'); // Limpia la ruta guardada
       } else {
-        ////console.log("⚠️ Error al descifrar los datos, eliminando...");
-        this.router.navigate(['/login']);
-        localStorage.removeItem('userData'); // Elimina datos corruptos
+        localStorage.removeItem('userData'); // Datos corruptos
       }
     }
   }
-
-
-  
 
   async login() {
     if (this.bloqueado) {
       this.showAlert('Cuenta Bloqueada', `Inténtalo de nuevo en ${this.tiempoRestante} segundos.`);
       return;
     }
-  
+
     if (!this.cedula || !this.password) {
       this.showAlert('Error', 'Ingrese su cédula y contraseña.');
       return;
     }
-  
+
+    const loading = await this.loadingController.create({
+      message: 'Verificando credenciales...',
+      spinner: 'crescent',
+      backdropDismiss: false
+    });
+    await loading.present();
+
     this.loginService.login(this.cedula, this.password).pipe(
-      timeout(10000) // Tiempo límite de 10 segundos
+      timeout(10000)
     ).subscribe(
-      response => {
-        console.log(response);
+      async response => {
+        await loading.dismiss();
+
         if (response.respuesta.estado === true) {
           const datosCifrados = this.encryptionService.cifrarDatos(response.data);
           localStorage.setItem('userData', datosCifrados);
-          this.router.navigate(['/pedidos']); // Redirigir al menú
           this.intentosFallidos = 0;
+
+          const lastRoute = localStorage.getItem('lastRoute') || '/pedidos';
+          this.router.navigate([lastRoute]);
+          localStorage.removeItem('lastRoute');
+
         } else {
           this.intentosFallidos++;
           this.showAlert('Error', 'Credenciales incorrectas.');
@@ -88,8 +84,10 @@ export class LoginPage {
           }
         }
       },
-      error => {
+      async error => {
+        await loading.dismiss();
         console.error('Error detectado:', error);
+
         if (error.status === 0) {
           this.showAlert('Error', 'No se pudo conectar con el servidor. Por favor, verifica tu conexión.');
         } else if (error.status >= 400 && error.status < 500) {
@@ -104,30 +102,29 @@ export class LoginPage {
       }
     );
   }
-  
 
   bloquearUsuario() {
     this.bloqueado = true;
-    this.tiempoRestante = 60; // 1 minuto de bloqueo
+    this.tiempoRestante = 60;
+
     this.showAlert('Cuenta Bloqueada', 'Has fallado 3 intentos. Espera 1 minuto para intentarlo nuevamente.');
 
     this.interval = setInterval(() => {
       this.tiempoRestante--;
-
       if (this.tiempoRestante <= 0) {
         clearInterval(this.interval);
         this.bloqueado = false;
-        this.intentosFallidos = 0; // Reiniciar intentos después del desbloqueo
+        this.intentosFallidos = 0;
       }
     }, 1000);
   }
 
   crearCuenta() {
-    this.router.navigate(['/crear-cuenta']); // Redirige a la página de registro
+    this.router.navigate(['/crear-cuenta']);
   }
 
   recuperarPassword() {
-    this.router.navigate(['/recuperar-contrasena']); // Redirige a la recuperación de contraseña
+    this.router.navigate(['/recuperar-contrasena']);
   }
 
   async showAlert(title: string, message: string) {

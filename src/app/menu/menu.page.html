@@ -1,83 +1,76 @@
-<div class="ion-page" id="main-content">
-  <ion-header>
-    <ion-toolbar>
-      <!-- Botón de Volver a Pedidos -->
-      <ion-buttons slot="start">
-        <ion-button (click)="irPedidos()">
-          <ion-icon name="arrow-back-outline"></ion-icon>
-        </ion-button>
-      </ion-buttons>
+<ion-header>
+  <ion-toolbar>
+    <!-- Botón de Volver a Pedidos -->
+    <ion-buttons slot="start">
+      <ion-button (click)="irPedidos()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
 
-      <ion-title class="header-title">BURGERBBER</ion-title>
+    <ion-title class="header-title">BURGERBBER</ion-title>
 
-      <ion-buttons slot="end">
-        <ion-button fill="clear" color="light" (click)="cerrarSesion()">
-          <ion-icon name="power-outline"></ion-icon>
-        </ion-button>
-      </ion-buttons>
-    </ion-toolbar>
-  </ion-header>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" color="light" (click)="cerrarSesion()">
+        <ion-icon name="power-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
 
-  <ion-content>
-    <!-- Título y Búsqueda de Productos -->
-    <ion-item>
-      <ion-input placeholder="Buscar productos" (ionInput)="buscarProducto($event)" style="padding-top: 10px;"></ion-input>
-      <ion-icon name="search-outline" slot="end"></ion-icon>
-    </ion-item>
+<ion-content [fullscreen]="true">
+  <!-- Título y Búsqueda de Productos -->
+  <ion-item lines="none">
+    <ion-input placeholder="Buscar productos" (ionInput)="buscarProducto($event)" style="padding-top: 10px;"></ion-input>
+    <ion-icon name="search-outline" slot="end"></ion-icon>
+  </ion-item>
 
-    <div class="productos-contenedor">
-      <ion-grid>
-        <ion-row>
-          <ion-col size="4" size-md="3" size-lg="2" *ngFor="let producto of productosFiltrados">
-            <ion-card (click)="agregarProducto(producto.codproducto)" class="producto-card">
-              <ion-card-content>
-                <ion-label>{{ producto.producto}}</ion-label>
-              </ion-card-content>
-            </ion-card>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
-    </div>
+  <div class="productos-contenedor">
+    <ion-grid>
+      <ion-row>
+        <ion-col size="4" size-md="3" size-lg="2" *ngFor="let producto of productosFiltrados">
+          <ion-card (click)="agregarProducto(producto.codproducto)" class="producto-card">
+            <ion-card-content>
+              <ion-label>{{ producto.producto }}</ion-label>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
 
-    <!-- Sección de Productos Seleccionados (Pedido) -->
-    <ion-card class="pedido-container">
-      <ion-card-header>
-        <ion-card-title style="padding-bottom: 5px;">Pedido</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="pedido-scroll">
-          <ion-list>
-            <ion-item *ngFor="let item of pedido">
-              <div class="producto">
-                <div class="producto-label">
-                  <ion-label>
-                    {{ item.cantidad }} x {{ item.producto }}
-                  </ion-label>
-                  <ion-label style="margin-left: 20px;">{{ item.observaciones }}</ion-label>
-                </div>
-                <div class="btns_productos" *ngIf="item.preparar == 1">
-                 
-                   <!-- 📝 Botón Editar Producto -->
-                   <ion-button color="primary" fill="clear" (click)="abrirEditarProducto(item)">
-                    <ion-icon name="create-outline"></ion-icon>
-                  </ion-button>
-                  
-
-                  <!-- Botón Eliminar -->
-                  <ion-button color="danger" fill="clear" slot="end" (click)="eliminarProducto(item.correlativo)">
-                    <ion-icon name="trash-outline"></ion-icon>
-                  </ion-button>
-                </div>
+  <!-- Sección de Productos Seleccionados (Pedido) -->
+  <ion-card class="pedido-container">
+    <ion-card-header>
+      <ion-card-title style="padding-bottom: 5px;">Pedido</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="pedido-scroll">
+        <ion-list>
+          <ion-item *ngFor="let item of pedido">
+            <div class="producto">
+              <div class="producto-label">
+                <ion-label>
+                  {{ item.cantidad }} x {{ item.producto }}
+                </ion-label>
+                <ion-label style="margin-left: 20px;">{{ item.observaciones }}</ion-label>
               </div>
-            </ion-item>
-          </ion-list>
-        </div>
-      </ion-card-content>
-    </ion-card>
+              <div class="btns_productos" *ngIf="item.preparar == 1">
+                <!-- 📝 Botón Editar Producto -->
+                <ion-button color="primary" fill="clear" (click)="abrirEditarProducto(item)">
+                  <ion-icon name="create-outline"></ion-icon>
+                </ion-button>
 
- 
-    
-  </ion-content>
+                <!-- Botón Eliminar -->
+                <ion-button color="danger" fill="clear" slot="end" (click)="eliminarProducto(item.correlativo)">
+                  <ion-icon name="trash-outline"></ion-icon>
+                </ion-button>
+              </div>
+            </div>
+          </ion-item>
+        </ion-list>
+      </div>
+    </ion-card-content>
+  </ion-card>
 
   <!-- Sección fija de Total y Mesa -->
   <div class="total-mesa">
@@ -98,9 +91,9 @@
       Preparar
     </ion-button>
 
-    <ion-button color="danger" expand="full" (click)="imprimirPreCuenta()" >
+    <ion-button color="danger" expand="full" (click)="imprimirPreCuenta()">
       <ion-icon name="close-circle-outline" slot="start"></ion-icon>
       Anular
     </ion-button>
   </div>
-</div>
+</ion-content>

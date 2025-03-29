@@ -1,9 +1,14 @@
+// Fondo general del menú lateral
 ion-menu {
   --background: #f0b323;
   color: white;
 }
 
-/* Toolbar (Encabezado principal) */
+// Encabezado superior
+ion-header {
+  padding-top: env(safe-area-inset-top); // Protege de solapamiento
+}
+
 ion-toolbar {
   --background: #f0b323;
   --color: white;
@@ -12,60 +17,53 @@ ion-toolbar {
   padding: 0 10px;
 }
 
-/* Botón de menú */
-ion-menu-button {
+// Título del encabezado
+.header-title {
+  font-weight: bold;
+  font-size: 1.4rem;
   color: white;
 }
 
-/* Iconos del menú */
+// Icono de cerrar sesión
 ion-icon {
   font-size: 1.6rem;
+  color: white;
 }
 
+// Tarjeta de cada mesa
 ion-card {
   padding: 0;
 }
 
-.header-md {
-  box-shadow: none;
-}
-
-/* Estilos generales de las mesas */
 .mesa-card {
   text-align: center;
   border-radius: 10px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease-in-out;
   background-color: white;
-  padding: 0px;
-  margin: 0px;
+  margin: 8px;
 }
 
 .mesa-card:hover {
   transform: scale(1.05);
 }
 
-/* Mesas con estatus 2 (Ocupadas o en uso) */
-.mesa-verde {
-  background-color: #d4edda; /* Verde claro */
-  color: #155724; /* Texto verde oscuro */
-  border: 1px solid #c3e6cb; /* Borde verde */
-}
-
-/* Nueva Clase para Mesas con Productos en `detalle_temp` */
+// Estilo especial para mesas con productos
 .mesa-con-productos {
-  background-color: #28a745 !important; /* Verde intenso */
+  background-color: #28a745 !important; // Verde intenso
   color: white !important;
   font-weight: bold;
   border: 2px solid #218838;
 }
 
+// Número de mesa
 .mesa-numero {
   font-size: 1.5rem;
   font-weight: bold;
   color: #333;
 }
 
+// Nombre del cliente en la mesa
 .mesa-cliente {
   font-size: 1rem;
   color: #555;

@@ -10,6 +10,8 @@ import { NavController } from '@ionic/angular';
 export class HomePage {
   constructor(private navCtrl: NavController) {}
 
+ 
+
   async ionViewDidEnter() {
     // Simula la animación del logo
     setTimeout(async () => {

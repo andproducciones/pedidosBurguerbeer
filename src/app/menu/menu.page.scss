@@ -22,6 +22,18 @@ ion-menu-button {
 ion-icon {
   font-size: 1.6rem;
 }
+ion-header {
+  padding-top: env(safe-area-inset-top); // Soluciona solapamiento con la barra de estado
+  z-index: 10;
+}
+
+ion-toolbar {
+  --background: #f0b323;
+  --color: white;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 10px;
+}
 .header-md{
   box-shadow: none;
 }
