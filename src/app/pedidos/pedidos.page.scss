@@ -1,23 +1,15 @@
-// Fondo general del menú lateral
-ion-menu {
-  --background: #f0b323;
-  color: white;
-}
+// Elimina espacio extra
 
-// Encabezado superior
-ion-header {
-  padding-top: env(safe-area-inset-top); // Protege de solapamiento
-}
-
+// Encabezado
 ion-toolbar {
   --background: #f0b323;
   --color: white;
   display: flex;
   justify-content: space-between;
   padding: 0 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-// Título del encabezado
 .header-title {
   font-weight: bold;
   font-size: 1.4rem;
@@ -30,7 +22,15 @@ ion-icon {
   color: white;
 }
 
-// Tarjeta de cada mesa
+// Título de la sección de pedidos
+.titulo-pedidos {
+  font-size: 1.4rem;
+  font-weight: bold;
+  padding: 8px 16px;
+  color: #333;
+}
+
+// Tarjetas de mesas
 ion-card {
   padding: 0;
 }
@@ -48,13 +48,30 @@ ion-card {
   transform: scale(1.05);
 }
 
-// Estilo especial para mesas con productos
-.mesa-con-productos {
-  background-color: #28a745 !important; // Verde intenso
+// Estilo para mesas con productos
+.mesa-en-preparacion {
+  background-color: #ffc107 !important; // Amarillo
+  color: black !important;
+  font-weight: bold;
+  border: 2px solid #e0a800;
+}
+
+.mesa-servida {
+  background-color: #28a745 !important; // Verde
   color: white !important;
   font-weight: bold;
   border: 2px solid #218838;
 }
+
+
+.mesa-vacia {
+  background-color: #e0e0e0 !important;
+  color: #666 !important;
+  font-weight: normal;
+  border: 2px solid #c0c0c0;
+}
+
+
 
 // Número de mesa
 .mesa-numero {
@@ -63,9 +80,31 @@ ion-card {
   color: #333;
 }
 
-// Nombre del cliente en la mesa
+// Nombre del cliente
 .mesa-cliente {
   font-size: 1rem;
   color: #555;
   margin-top: 5px;
+}
+
+.spinner-contenedor {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  text-align: center;
+
+  ion-spinner {
+    width: 80px;
+    height: 80px;
+    color: #f0b323; // tu color institucional
+  }
+
+  p {
+    margin-top: 15px;
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #555;
+  }
 }

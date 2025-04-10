@@ -5,8 +5,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { VentasService } from '../services/ventas/ventas.service';
 import { EncryptionService } from '../services/encriptacion/encriptacion.service';
-import { ModalEditarProductoPage } from '../modal-editar-producto/modal-editar-producto.page'; // Importar el modal
-
+import { ModalEditarProductoPage } from '../modal-editar-producto/modal-editar-producto.page';
+import { ConexionService } from '../services/conexion/conexion.service';
 
 @Component({
   selector: 'app-menu',
@@ -15,7 +15,7 @@ import { ModalEditarProductoPage } from '../modal-editar-producto/modal-editar-p
   standalone: true,
   imports: [IonicModule, CommonModule, FormsModule]
 })
-export class MenuPage implements OnInit {
+export class MenuPage{
   userData: any;
   pedido: any[] = [];
   total: number = 0;
@@ -23,9 +23,10 @@ export class MenuPage implements OnInit {
 
   categorias: any[] = [];
   productos: any[] = [];
-
   categoriasFiltradas: any[] = [];
   productosFiltrados: any[] = [];
+
+  cargando: boolean = true; // ✅ Mostrar loading
 
   constructor(
     private router: Router,
@@ -34,172 +35,101 @@ export class MenuPage implements OnInit {
     private ventas: VentasService,
     private encryptionService: EncryptionService,
     private route: ActivatedRoute,
-    private modalCtrl: ModalController
+    private modalCtrl: ModalController,
+    private conexionService: ConexionService
+    
   ) {}
 
-  ngOnInit() {
-    // 🔐 Obtener datos del usuario desde localStorage
+  async ionViewWillEnter(){
+    const conectado = await this.conexionService.forzarVerificacionManual();
+  
+    if (!conectado) {
+      this.router.navigate(['/sin-conexion']);
+      return;
+    }
+
     const storedUserData = localStorage.getItem('userData');
     if (storedUserData) {
-        const userData = this.encryptionService.descifrarDatos(storedUserData);
-        if (userData) {
-            this.userData = userData;
-        } else {
-            console.error("⚠️ Error al descifrar los datos del usuario. Cerrando sesión...");
-            this.cerrarSesion();
-            return; // Detiene la ejecución
-        }
-    } else {
-        console.warn("⚠️ No se encontró información del usuario. Cerrando sesión...");
+      const userData = this.encryptionService.descifrarDatos(storedUserData);
+      if (userData) {
+        this.userData = userData;
+      } else {
         this.cerrarSesion();
         return;
+      }
+    } else {
+      this.cerrarSesion();
+      return;
     }
 
-// 🏷️ Obtener el ID de la mesa desde la URL
-this.route.paramMap.subscribe(params => {
-  const idMesa = params.get('id');
+    this.route.paramMap.subscribe(params => {
+      const idMesa = params.get('id');
+      if (!idMesa) return;
 
-  if (!idMesa) {
-      console.warn("⚠️ No se recibió el ID de la mesa en la URL");
-      return;
+      this.mesa = parseInt(idMesa, 10);
+      this.cargarPedidoMesa();
+      this.obtenerProductos();
+    });
   }
 
-  this.mesa = parseInt(idMesa, 10); // Convertir a número
-  //console.log("🟢 ID de la mesa obtenida:", this.mesa);
-
-  // 📦 Mostrar modal para ingresar el nombre del cliente
-  //this.mostrarModalNombreCliente();
-  this.cargarPedidoMesa();
-  this.obtenerProductos();
-
-});
-}
-
-async mostrarModalNombreCliente() {
-  const alert = await this.alertCtrl.create({
-    header: "Nombre del cliente",
-    inputs: [
-      {
-        name: "nombre",
-        type: "text",
-        placeholder: "Ej: Juan Pérez",
-        value: 'Cliente',
-      },
-    ],
-    buttons: [
-      {
-        text: "Cancelar",
-        role: "cancel",
-        handler: () => {
-          // 🔴 Aquí vaciamos el nombre de la mesa
-          this.actualizarNombreMesa('');
-          this.router.navigate(['/pedidos']);
-          return false;
-        },
-      },
-      {
-        text: "Guardar",
-        handler: (data: any) => {
-          if (!data.nombre.trim()) {
-            console.warn("⚠️ Nombre inválido.");
-            return false;
-          }
-
-          this.actualizarNombreMesa(data.nombre);
-          return true;
-        },
-      },
-    ],
-  });
-
-  await alert.present();
-}
-
-
-// 🆕 Función para actualizar el nombre de la mesa
-actualizarNombreMesa(nombre: string) {
-    const payload = {
-        accion: 'actualizarNombreMesa',
-        mesa: this.mesa,
-        nombre: nombre,
-        //usuario: this.userData.usuario
-    };
-
-    this.ventas.todosAction(payload).subscribe(
-        (response) => {
-            if (response && response.respuesta.estado) {
-                //console.log("✅ Nombre de la mesa actualizado:", response);
-            } else {
-                console.warn("⚠️ No se pudo actualizar el nombre de la mesa:", response.respuesta.response);
-            }
-        },
-        (error) => {
-            console.error("❌ Error en la solicitud:", error);
-        }
-    );
-}
-
-
-// 📌 Función para obtener los detalles del pedido de la mesa
-cargarPedidoMesa() {
-    if (!this.userData) {
-        console.warn("⚠️ No se encontró información del usuario. No se puede cargar el pedido.");
-        return;
+  verificarCargaCompleta() {
+    if (this.productos.length > 0 && this.pedido !== null) {
+      this.cargando = false;
     }
+  }
+
+  cargarPedidoMesa() {
+    if (!this.userData) return;
 
     const payload = {
-        accion: 'searchForDetalle',
-        mesa: this.mesa,
-        usuario: this.userData.usuario
+      accion: 'searchForDetalle',
+      mesa: this.mesa,
+      usuario: this.userData.usuario
     };
 
     this.ventas.todosAction(payload).subscribe(
-        (response) => {
-            //console.log("✅ Respuesta del backend:", response);
+      (response) => {
+        if (response && response.respuesta.estado && response.data.detalle != 0) {
+          this.pedido = response.data.detalle.map((item: any) => ({
+            cantidad: item.cantidad,
+            producto: item.producto,
+            observaciones: item.observaciones || "",
+            precio_unitario: parseFloat(item.precio_unitario),
+            total: parseFloat(item.precio_total),
+            preparar: item.preparar,
+            correlativo: item.correlativo
+          }));
+          this.total = parseFloat(response.data.totales.total);
+        } else {
+          this.pedido = [];
+          this.total = 0;
+          this.mostrarModalNombreCliente();
+        }
 
-            if (response && response.respuesta.estado && response.data.detalle != 0) {
-                this.pedido = response.data.detalle.map((item: any) => ({
-                    cantidad: item.cantidad,
-                    producto: item.producto,
-                    observaciones: item.observaciones || "",
-                    precio_unitario: parseFloat(item.precio_unitario),
-                    total: parseFloat(item.precio_total),
-                    preparar: item.preparar,
-                    correlativo: item.correlativo
-                }));
-
-                // Actualizar totales
-                this.total = parseFloat(response.data.totales.total);
-            } else {
-                console.warn("⚠️ No se encontraron productos en la mesa:", response.respuesta.response);
-                this.pedido = []; // Vacía el pedido si no hay productos
-                this.total = 0;
-                this.mostrarModalNombreCliente();
-            }
-        },
-        (error) => {
-            console.error("❌ Error al obtener el pedido de la mesa:", error);
-            this.mostrarModalNombreCliente();
-          }
+        this.verificarCargaCompleta();
+      },
+      (error) => {
+        console.error("❌ Error al obtener el pedido de la mesa:", error);
+        this.pedido = [];
+        this.total = 0;
+        this.verificarCargaCompleta();
+        this.mostrarModalNombreCliente();
+      }
     );
-}
-
+  }
 
   obtenerProductos() {
     this.ventas.getProductos().subscribe(
       (response) => {
-        ////console.log(response);
-        ////console.log(response.data[0].url);
         if (response.respuesta.estado) {
           this.productos = response.data;
-          ////console.log(this.productos);
-          this.productosFiltrados = [...this.productos]; // Inicializa productos filtrados
-        } else {
-          //console.log('No se encontraron productos');
+          this.productosFiltrados = [...this.productos];
         }
+        this.verificarCargaCompleta();
       },
       (error) => {
-        console.error('Error al obtener productos:', error);
+        console.error('❌ Error al obtener productos:', error);
+        this.verificarCargaCompleta();
       }
     );
   }
@@ -211,182 +141,8 @@ cargarPedidoMesa() {
     );
   }
 
-
-agregarProducto(productoId: any) {
-
-  ////console.log(productoId);
-
-  const payload = {
-              accion: 'addProductoDetalle',
-              producto: productoId,
-              mesa: this.mesa,
-              cantidad: 1,
-              usuario: this.userData.usuario
-              };
-
-  this.ventas.todosAction(payload).subscribe(
-    (response) => {
-
-      //console.log(response);
-
-      if (response && response.respuesta.estado) {
-        ////console.log("✅ Respuesta del backend:", response);
-
-        // Reemplazar el pedido con la respuesta del backend
-        this.pedido = response.data.detalle.map((item: any) => ({
-            cantidad: item.cantidad,
-            producto: item.producto,
-            observaciones: item.observaciones || "",
-            precio_unitario: parseFloat(item.precio_unitario),
-            total: parseFloat(item.precio_total),
-            preparar: item.preparar,
-            correlativo: item.correlativo
-        }));
-
-        // Actualizar totales y guardar en localStorage
-        this.total = parseFloat(response.data.totales.total);
-        //localStorage.setItem('pedido', JSON.stringify(this.pedido));
-
-    } else {
-        console.warn("⚠️ No se pudo agregar el producto:", response.respuesta.response);
-    }
-
- });
-}
-
-
-  eliminarProducto(productoId: any) {  
-      //console.log("🗑 Eliminando producto:", productoId);
-  
-      const payload = {
-          accion: 'del_product_detalle', // Cambiar la acción para eliminar
-          id_detalle: productoId,
-          mesa: this.mesa,
-          usuario: this.userData.usuario
-      };
-  
-      this.ventas.todosAction(payload).subscribe(
-          (response) => {
-
-            //console.log(response);
-              if (response && response.respuesta.estado) {
-                  //console.log("✅ Producto eliminado correctamente:", response);
-  
-                  // Reemplazar el pedido con la nueva lista devuelta por el backend
-                  this.pedido = response.data.detalle.map((item: any) => ({
-                      cantidad: item.cantidad,
-                      producto: item.producto,
-                      observaciones: item.observaciones || "",
-                      precio_unitario: parseFloat(item.precio_unitario),
-                      total: parseFloat(item.precio_total),
-                      preparar: item.preparar,
-                      correlativo: item.correlativo
-                  }));
-  
-                  // Actualizar los totales
-                  this.total = parseFloat(response.data.totales.total);
-                  //localStorage.setItem('pedido', JSON.stringify(this.pedido));
-  
-                  this.showToast("Producto eliminado correctamente.");
-              } else {
-
-                  this.pedido = [];
-                  this.total = 0;
-                  console.warn("⚠️ No se pudo eliminar el producto:", response.respuesta.response);
-              }
-          },
-          (error) => {
-              console.error("❌ Error en la solicitud:", error);
-          }
-      );
-  }
-
-
-  irPedidos() {
-    this.router.navigate(['/pedidos'], { state: { recargar: true } });
-  }
-
-  irPerfil() {
-    this.router.navigate(['/perfil']);
-  }
-
-
-
-  facturar(){
-
-  }
-
-  async prepararOrden() {
-    const alert = await this.alertCtrl.create({
-      header: 'Ingresar Nombre del Cliente',
-      inputs: [
-        {
-          name: 'nombreCliente',
-          type: 'text',
-          placeholder: 'Nombre del Cliente'
-        }
-      ],
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel',
-          handler: () => {
-            return true; // Asegura que esta ruta devuelva un valor
-          }
-        },
-        {
-          text: 'Aceptar',
-          handler: (data) => {
-            if (!data.nombreCliente.trim()) {
-              this.showToast("⚠️ Debe ingresar un nombre válido.");
-              return false; // Evita cerrar el modal si el campo está vacío
-            }
-  
-            this.enviarOrden(data.nombreCliente);
-            return true; // Asegura que esta ruta devuelva un valor
-          }
-        }
-      ]
-    });
-  
-    await alert.present();
-  }
-  
-
-  enviarOrden(nombreCliente: string) {
-    //console.log("🍽 Enviando orden para:", nombreCliente, "Mesa:", this.mesa);
-
-    const payload = {
-      accion: 'imprimirComanda2',
-      mesa: this.mesa,
-      nombre: nombreCliente,
-      usuario: this.userData.usuario,
-      nombre_mesero: this.userData.nombre,
-      apellido_mesero: this.userData.apellido
-    };
-
-    this.ventas.todosAction(payload).subscribe(
-      (response) => {
-        if (response && response.respuesta.estado) {
-          //console.log("✅ Orden enviada correctamente:", response);
-          this.cargarPedidoMesa();
-          this.showToast("✅ Orden enviada a cocina.");
-        } else {
-          console.warn("⚠️ No se pudo enviar la orden:", response);
-          this.showToast("⚠️ No se pudo enviar la orden.");
-        }
-      },
-      (error) => {
-        console.error("❌ Error en la solicitud:", error);
-        //console.log(error.error.text)
-        this.showToast("❌ Error al procesar la orden.");
-      }
-    );
-  }
-
-
-  imprimirPreCuenta(){
-    
+  seleccionarMesa(mesa: any) {
+    this.router.navigate([`/menu/${mesa.id}`], { state: { recargar: true } });
   }
 
   cerrarSesion() {
@@ -404,58 +160,145 @@ agregarProducto(productoId: any) {
     toast.present();
   }
 
+  async mostrarModalNombreCliente() {
+    const alert = await this.alertCtrl.create({
+      header: "Nombre del cliente",
+      inputs: [
+        {
+          name: "nombre",
+          type: "text",
+          placeholder: "Ej: Juan Pérez",
+          value: 'Cliente',
+        },
+      ],
+      buttons: [
+        {
+          text: "Cancelar",
+          role: "cancel",
+          handler: () => {
+            this.actualizarNombreMesa('');
+            this.router.navigate(['/pedidos']);
+            return false;
+          },
+        },
+        {
+          text: "Guardar",
+          handler: (data: any) => {
+            if (!data.nombre.trim()) return false;
+            this.actualizarNombreMesa(data.nombre);
+            return true;
+          },
+        },
+      ],
+    });
 
+    await alert.present();
+  }
 
+  actualizarNombreMesa(nombre: string) {
+    const payload = {
+      accion: 'actualizarNombreMesa',
+      mesa: this.mesa,
+      nombre: nombre
+    };
 
+    this.ventas.todosAction(payload).subscribe();
+  }
 
-  //modal detalles
- 
-async abrirEditarProducto(producto: any) {
-  //console.log("📝 Editando producto:", producto);
+  agregarProducto(productoId: any) {
+    const payload = {
+      accion: 'addProductoDetalle',
+      producto: productoId,
+      mesa: this.mesa,
+      cantidad: 1,
+      usuario: this.userData.usuario
+    };
 
-  const payload = {
-    accion: 'formDetalleProducto2',
-    co: producto.correlativo
-  };
+    this.ventas.todosAction(payload).subscribe(
+      (response) => {
+        if (response && response.respuesta.estado) {
+          this.pedido = response.data.detalle.map((item: any) => ({
+            cantidad: item.cantidad,
+            producto: item.producto,
+            observaciones: item.observaciones || "",
+            precio_unitario: parseFloat(item.precio_unitario),
+            total: parseFloat(item.precio_total),
+            preparar: item.preparar,
+            correlativo: item.correlativo
+          }));
 
-  this.ventas.todosAction(payload).subscribe(async (response) => {
-    if (response && response.respuesta.estado) {
-
-      //console.log(response)
-      const atributos = response.data.atributos || [];
-      const observaciones = "";
-      const observacionesprevias = response.data.observaciones || "";
-
-      // 📌 Crear modal sin usar un módulo
-      const modal = await this.modalCtrl.create({
-        component: ModalEditarProductoPage, // ✅ STANDALONE COMPONENT
-        componentProps: {
-          producto,
-          atributos,
-          observaciones,
-          observacionesprevias
+          this.total = parseFloat(response.data.totales.total);
         }
-      });
-
-      await modal.present();
-
-      // 📝 Obtener datos después de cerrar el modal
-      const { data } = await modal.onWillDismiss();
-      if (data) {
-        //console.log("✅ Datos recibidos:", data);
-        this.guardarEdicionProducto(producto.correlativo, data);
       }
-    } else {
-      console.warn("⚠️ No se encontraron atributos del producto.");
-    }
-  }, (error) => {
-    console.error("❌ Error al obtener atributos del producto:", error);
-  });
-}
+    );
+  }
+
+  eliminarProducto(productoId: any) {
+    const payload = {
+      accion: 'del_product_detalle',
+      id_detalle: productoId,
+      mesa: this.mesa,
+      usuario: this.userData.usuario
+    };
+
+    this.ventas.todosAction(payload).subscribe(
+      (response) => {
+        if (response && response.respuesta.estado) {
+          this.pedido = response.data.detalle.map((item: any) => ({
+            cantidad: item.cantidad,
+            producto: item.producto,
+            observaciones: item.observaciones || "",
+            precio_unitario: parseFloat(item.precio_unitario),
+            total: parseFloat(item.precio_total),
+            preparar: item.preparar,
+            correlativo: item.correlativo
+          }));
+
+          this.total = parseFloat(response.data.totales.total);
+          this.showToast("Producto eliminado correctamente.");
+        } else {
+          this.pedido = [];
+          this.total = 0;
+        }
+      },
+      (error) => {
+        console.error("❌ Error en la solicitud:", error);
+      }
+    );
+  }
+
+  async abrirEditarProducto(producto: any) {
+    const payload = {
+      accion: 'formDetalleProducto2',
+      co: producto.correlativo
+    };
+
+    this.ventas.todosAction(payload).subscribe(async (response) => {
+      if (response && response.respuesta.estado) {
+        const atributos = response.data.atributos || [];
+        const observacionesprevias = response.data.observaciones || "";
+
+        const modal = await this.modalCtrl.create({
+          component: ModalEditarProductoPage,
+          componentProps: {
+            producto,
+            atributos,
+            observaciones: "",
+            observacionesprevias
+          }
+        });
+
+        await modal.present();
+
+        const { data } = await modal.onWillDismiss();
+        if (data) {
+          this.guardarEdicionProducto(producto.correlativo, data);
+        }
+      }
+    });
+  }
 
   guardarEdicionProducto(correlativo: number, data: any) {
-    
-    ////console.log("📝 Guardando edición del producto:", correlativo, data);
     const payload = {
       accion: 'editarProducto',
       co: correlativo,
@@ -465,21 +308,107 @@ async abrirEditarProducto(producto: any) {
         valor: data.atributos[k]
       }))
     };
-  ////console.log(payload);
-    this.ventas.todosAction(payload).subscribe((response) => {
 
-      ////console.log(response);
+    this.ventas.todosAction(payload).subscribe((response) => {
       if (response && response.respuesta.estado) {
-        //console.log("✅ Producto actualizado:", response);
         this.showToast("Producto actualizado correctamente.");
-        this.cargarPedidoMesa(); // Recargar la lista de pedidos
-      } else {
-        console.warn("⚠️ No se pudo actualizar el producto.");
+        this.cargarPedidoMesa();
       }
-    }, (error) => {
-      console.error("❌ Error al actualizar el producto:", error);
+    });
+  }
+
+  irPedidos() {
+    this.router.navigate(['/pedidos'], { state: { recargar: true } });
+  }
+
+  irPerfil() {
+    this.router.navigate(['/perfil']);
+  }
+
+  facturar() {}
+
+  async prepararOrden() {
+    const alert = await this.alertCtrl.create({
+      header: 'Ingresar Nombre del Cliente',
+      inputs: [{ name: 'nombreCliente', type: 'text', placeholder: 'Nombre del Cliente' }],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Aceptar',
+          handler: (data) => {
+            if (!data.nombreCliente.trim()) {
+              this.showToast("⚠️ Debe ingresar un nombre válido.");
+              return false;
+            }
+            this.enviarOrden(data.nombreCliente);
+            return true;
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  enviarOrden(nombreCliente: string) {
+    const payload = {
+      accion: 'imprimirComanda2',
+      mesa: this.mesa,
+      nombre: nombreCliente,
+      usuario: this.userData.usuario,
+      nombre_mesero: this.userData.nombre,
+      apellido_mesero: this.userData.apellido
+    };
+
+    this.ventas.todosAction(payload).subscribe(
+      (response) => {
+        //console.log(response);
+        if (response && response.respuesta.estado) {
+          this.cargarPedidoMesa();
+          this.showToast("✅ Orden impresa.");
+        } else {
+          //this.cargarPedidoMesa();
+          this.showToast("⚠️ Orden no impresa.");
+        }
+      },
+      (error) => {
+        this.showToast("❌ Error al procesar la orden.");
+      }
+    );
+  }
+
+  marcarServido(correlativo: any) {
+    //const mesa = this.mesa;
+    //const usuario = this.userData.usuario;
+  
+    this.ventas.marcarServido(correlativo).subscribe({
+      next: (res: any) => {
+        console.log(res)
+        if (res.respuesta.estado) {
+          //res.preparar = 3;
+          this.presentToast('✅ Producto marcado como servido');
+          this.cargarPedidoMesa();
+
+        } else {
+          this.presentToast(res.response || 'No se pudo marcar como servido');
+        }
+      },
+      error: () => {
+        this.presentToast('❌ Error al conectar con el servidor');
+      }
     });
   }
   
+  private async presentToast(message: string) {
+    const toast = await this.toastCtrl.create({
+      message,
+      duration: 2000,
+      position: 'bottom',
+      color: 'success'
+    });
+    await toast.present();
+  }
+  
 
+  imprimirPreCuenta() {}
 }

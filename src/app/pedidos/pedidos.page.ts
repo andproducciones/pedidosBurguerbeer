@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { VentasService } from '../services/ventas/ventas.service';
 import { Router } from '@angular/router';
 import { EncryptionService } from '../services/encriptacion/encriptacion.service';
+import { ConexionService } from '../services/conexion/conexion.service';
 
 @Component({
   selector: 'app-pedidos',
@@ -9,17 +10,31 @@ import { EncryptionService } from '../services/encriptacion/encriptacion.service
   styleUrls: ['./pedidos.page.scss'],
   standalone: false
 })
-export class PedidosPage implements OnInit {
+export class PedidosPage {
   mesas: any[] = []; // Lista de mesas
   userData: any;
+  cargando: boolean = true;
+
 
   constructor(
     private ventasService: VentasService,
     private router: Router,
-    private encryptionService: EncryptionService
+    private encryptionService: EncryptionService,
+    private conexionService: ConexionService
   ) {}
 
-  ngOnInit() {
+
+
+  // 🔁 Se ejecuta SIEMPRE al ingresar a la vista
+  async ionViewWillEnter() {
+    const conectado = await this.conexionService.forzarVerificacionManual();
+  
+    if (!conectado) {
+      this.router.navigate(['/sin-conexion']);
+      return;
+    }
+
+    //console.log(conectado)
     const storedUserData = localStorage.getItem('userData');
 
     if (storedUserData) {
@@ -32,10 +47,7 @@ export class PedidosPage implements OnInit {
     } else {
       this.cerrarSesion();
     }
-  }
-
-  // 🔁 Se ejecuta SIEMPRE al ingresar a la vista
-  ionViewWillEnter() {
+    this.cargando = true;
     this.obtenerMesas();
   }
 
@@ -56,12 +68,17 @@ export class PedidosPage implements OnInit {
           Promise.all(promesas).then((resultados) => {
             this.mesas = mesas.map((mesa: any, index: number) => ({
               ...mesa,
-              tieneProductos: resultados[index],
+              estado: resultados[index], // 0, 2 o 3
             }));
+            this.cargando = false;
           });
+          
+          
+       
         } else {
           console.error('⚠️ No se encontraron mesas.');
           this.mesas = [];
+          this.cargando = false;
         }
       },
       (error) => {
@@ -70,26 +87,27 @@ export class PedidosPage implements OnInit {
     );
   }
 
-  // ✅ Verifica si una mesa tiene productos en detalle_temp
-  verificarMesaTieneProductos(mesaId: number): Promise<boolean> {
+  verificarMesaTieneProductos(mesaId: number): Promise<number> {
     return new Promise((resolve) => {
       const payload = { accion: 'verificarProductosMesa', mesa: mesaId };
-
+  
       this.ventasService.todosAction(payload).subscribe(
         (response) => {
-          if (response?.respuesta?.estado && response.data?.productos > 0) {
-            resolve(true);
+          //console.log(`✅ Verificación de mesa ${mesaId}:`, response.data);
+          if (response?.respuesta?.estado) {
+            resolve(response.data.estado); // 0, 2 o 3
           } else {
-            resolve(false);
+            resolve(0);
           }
         },
         (error) => {
           console.error(`❌ Error al verificar mesa ${mesaId}:`, error);
-          resolve(false); // En caso de error, se asume que no tiene productos
+          resolve(0);
         }
       );
     });
   }
+  
 
   // 🟢 Redirige al menú de la mesa
   seleccionarMesa(mesa: any) {
@@ -101,7 +119,7 @@ export class PedidosPage implements OnInit {
   }
 
   cerrarSesion() {
-    localStorage.removeItem('userData');
     this.router.navigate(['/login']);
+    localStorage.removeItem('userData');
   }
 }

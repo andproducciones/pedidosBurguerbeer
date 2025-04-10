@@ -1,4 +1,9 @@
 /* Menú lateral */
+ion-content {
+  --padding-top: 16px; // o puedes dejarlo sin definir para usar el default
+  --padding-bottom: 120px; // para no tapar contenido con la barra fija de botones
+}
+
 ion-menu {
   --background: #f0b323;
   color: white;
@@ -10,7 +15,7 @@ ion-toolbar {
   --color: white;
   display: flex;
   justify-content: space-between;
-  padding: 0 10px;
+  //padding: 0 10px;
 }
 
 /* Botón de menú */
@@ -23,7 +28,7 @@ ion-icon {
   font-size: 1.6rem;
 }
 ion-header {
-  padding-top: env(safe-area-inset-top); // Soluciona solapamiento con la barra de estado
+  //padding-top: env(safe-area-inset-top); // Soluciona solapamiento con la barra de estado
   z-index: 10;
 }
 
@@ -33,6 +38,12 @@ ion-toolbar {
   display: flex;
   justify-content: space-between;
   padding: 0 10px;
+}
+.cantidad-producto ion-button {
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
 }
 .header-md{
   box-shadow: none;
@@ -79,17 +90,18 @@ ion-toolbar {
 
 /* Contenedor del pedido con scroll */
 .pedido-container {
-  height: 50vh;
+  height: 45h;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   box-shadow: none;
   margin: 0;
+  margin-bottom: 120px; 
   //overflow-y: auto;
 }
 
 .pedido-scroll {
-  height: 43vh;
+  height: 42vh;
   overflow-y: auto;
   //padding-top: 10px;
   margin: 0;
@@ -142,7 +154,7 @@ ion-card-header{
   display: flex;
   justify-content: space-between;
   border: none;
-  bottom: 50px;
+  bottom: 60px;
   left: 0;
   width: 100%;
   background: white;
@@ -173,4 +185,26 @@ ion-card-header{
 .botones-fijos ion-button {
   flex: 1;
   margin: 0 5px;
+}
+
+.spinner-contenedor {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  text-align: center;
+
+  ion-spinner {
+    width: 80px;
+    height: 80px;
+    color: #f0b323; // tu color institucional
+  }
+
+  p {
+    margin-top: 15px;
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #555;
+  }
 }

@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { Network } from '@capacitor/network';
-import { GLOBAL } from '../services/GLOBAL';
+import { ConexionService } from '../services/conexion/conexion.service';
 
 @Component({
   selector: 'app-sin-conexion',
@@ -12,8 +11,12 @@ import { GLOBAL } from '../services/GLOBAL';
 export class SinConexionPage {
 
   reintentando: boolean = false;
+  detenerReintento: boolean = false;
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private conexionService: ConexionService
+  ) {}
 
   ionViewWillEnter() {
     this.bloquearBotonAtras();
@@ -22,34 +25,28 @@ export class SinConexionPage {
 
   ionViewWillLeave() {
     this.restablecerBotonAtras();
+    this.detenerReintento = true;
   }
 
   async iniciarReintentos() {
     if (this.reintentando) return;
     this.reintentando = true;
 
-    const urlServidor = GLOBAL.url + 'index.php';
     const esperar = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-    while (true) {
-      const status = await Network.getStatus();
+    while (!this.detenerReintento) {
+      const conectado = await this.conexionService.forzarVerificacionManual();
 
-      if (status.connected) {
-        try {
-          const response = await fetch(urlServidor, { method: 'GET', cache: 'no-cache' });
+      if (conectado) {
+        let lastRoute = localStorage.getItem('lastRoute') || '/pedidos';
 
-          if (response.ok) {
-            const data = await response.json();
-            if (data.estado) {
-              const lastRoute = localStorage.getItem('lastRoute') || '/pedidos';
-              this.restablecerBotonAtras();
-              this.router.navigate([lastRoute]);
-              break;
-            }
-          }
-        } catch (error) {
-          // Silencioso
+        if (lastRoute === '/sin-conexion') {
+          lastRoute = '/pedidos';
         }
+
+        this.detenerReintento = true;
+        this.router.navigateByUrl(lastRoute);
+        return;
       }
 
       await esperar(3000);
@@ -71,6 +68,5 @@ export class SinConexionPage {
   botonAtrasInhabilitado = (event: any) => {
     event.preventDefault();
     event.stopPropagation();
-    // No hace nada al presionar el botón atrás
   };
 }

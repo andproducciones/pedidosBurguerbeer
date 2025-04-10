@@ -17,20 +17,11 @@ const routes: Routes = [
     loadChildren: () => import('./login/login.module').then(m => m.LoginPageModule),
     canActivate: [ConexionGuard]
   },
-  {
-    path: 'crear-cuenta',
-    loadChildren: () => import('./crear-cuenta/crear-cuenta.module').then(m => m.CrearCuentaPageModule),
-    canActivate: [ConexionGuard]
-  },
-  {
-    path: 'recuperar-contrasena',
-    loadChildren: () => import('./recuperar-contrasena/recuperar-contrasena.module').then(m => m.RecuperarContrasenaPageModule),
-    canActivate: [ConexionGuard]
-  },
+ 
   {
     path: 'menu/:id',
-    loadChildren: () => import('./menu/menu.module').then(m => m.MenuPageModule),
-    canActivate: [ConexionGuard]
+    canActivate: [ConexionGuard],
+    loadComponent: () => import('./menu/menu.page').then(m => m.MenuPage)
   },
   {
     path: 'perfil',

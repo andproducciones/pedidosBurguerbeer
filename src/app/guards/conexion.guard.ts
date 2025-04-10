@@ -1,25 +1,23 @@
 import { Injectable } from '@angular/core';
 import {
   CanActivate,
-  Router,
-  UrlTree,
   ActivatedRouteSnapshot,
-  RouterStateSnapshot
+  RouterStateSnapshot,
+  Router,
+  UrlTree
 } from '@angular/router';
-import { Network } from '@capacitor/network';
-import { GLOBAL } from '../services/GLOBAL';
-import { AlertController } from '@ionic/angular'; // 👈 IMPORTANTE
+import { AlertController } from '@ionic/angular';
+import { ConexionService } from '../services/conexion/conexion.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ConexionGuard implements CanActivate {
 
-  private urlServidor = GLOBAL.url;
-
   constructor(
+    private conexionService: ConexionService,
     private router: Router,
-    private alertController: AlertController // 👈 INYECTADO
+    private alertController: AlertController
   ) {}
 
   async canActivate(
@@ -28,55 +26,23 @@ export class ConexionGuard implements CanActivate {
   ): Promise<boolean | UrlTree> {
     localStorage.setItem('lastRoute', state.url);
 
-    const status = await Network.getStatus();
-    if (!status.connected) {
-      await this.mostrarAlerta('Sin Internet', 'No tienes conexión a internet.');
+    // 🧠 Verifica la conexión REAL al momento de la navegación
+    const conectado = await this.conexionService.forzarVerificacionManual();
+
+    if (!conectado) {
+      await this.mostrarAlerta('Sin conexión', 'No se puede acceder a esta ruta sin conexión al servidor.');
       return this.router.parseUrl('/sin-conexion');
     }
 
-    try {
-      console.log('🌐 Verificando conexión con el servidor:', this.urlServidor);
-    
-      const response = await fetch(this.urlServidor, {
-        method: 'GET',
-        cache: 'no-cache'
-      });
-    
-      console.log('📥 Respuesta del servidor:', response);
-    
-      if (!response.ok) {
-        console.error('❌ Response no OK, status:', response.status);
-        return this.router.parseUrl('/sin-conexion');
-      }
-    
-      const data = await response.json();
-      console.log('📦 Data recibida:', data);
-    
-      if (!data.estado) {
-        console.error('⚠️ Estado falso:', data);
-        return this.router.parseUrl('/sin-conexion');
-      }
-    
-      console.log('✅ Conexión y respuesta correctas.');
-      return true;
-    
-    } catch (error: any) {
-      console.error('🔥 Error en fetch al servidor:', error.message || error);
-      return this.router.parseUrl('/sin-conexion');
-    }
-    
-    
+    return true;
   }
 
-  private async mostrarAlerta(titulo: string, mensaje: any) {
-    const contenido = typeof mensaje === 'object' ? JSON.stringify(mensaje, null, 2) : mensaje;
-  
+  private async mostrarAlerta(titulo: string, mensaje: string) {
     const alert = await this.alertController.create({
       header: titulo,
-      message: `${contenido}`,
+      message: mensaje,
       buttons: ['OK']
     });
     await alert.present();
   }
-  
 }

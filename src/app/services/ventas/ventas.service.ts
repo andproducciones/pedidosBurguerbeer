@@ -53,6 +53,21 @@ export class VentasService {
         { headers }
       );
     }
+
+    marcarServido(correlativo: number): Observable<any> {
+      const headers = new HttpHeaders({
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      });
+    
+      const body = {
+        accion: 'servido',
+        correlativo: correlativo
+      };
+    
+      return this.http.post<any>(this.API_URL, body, { headers });
+    }
+    
     
 
 }

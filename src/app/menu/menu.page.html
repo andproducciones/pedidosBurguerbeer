@@ -19,6 +19,15 @@
 
 <ion-content [fullscreen]="true">
   <!-- Título y Búsqueda de Productos -->
+
+  <ng-container *ngIf="cargando">
+    <div class="spinner-contenedor">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando...</p>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="!cargando">
   <ion-item lines="none">
     <ion-input placeholder="Buscar productos" (ionInput)="buscarProducto($event)" style="padding-top: 10px;"></ion-input>
     <ion-icon name="search-outline" slot="end"></ion-icon>
@@ -54,17 +63,34 @@
                 </ion-label>
                 <ion-label style="margin-left: 20px;">{{ item.observaciones }}</ion-label>
               </div>
+              <!-- Botones cuando preparar == 1 -->
               <div class="btns_productos" *ngIf="item.preparar == 1">
-                <!-- 📝 Botón Editar Producto -->
                 <ion-button color="primary" fill="clear" (click)="abrirEditarProducto(item)">
                   <ion-icon name="create-outline"></ion-icon>
                 </ion-button>
 
-                <!-- Botón Eliminar -->
                 <ion-button color="danger" fill="clear" slot="end" (click)="eliminarProducto(item.correlativo)">
                   <ion-icon name="trash-outline"></ion-icon>
                 </ion-button>
+
+                <ion-button fill="clear" (click)="marcarServido(item.correlativo)">
+                  <ion-icon name="checkmark-outline" style="color: red; font-size: 1.8rem;"></ion-icon>
+                </ion-button>
               </div>
+
+                          <!-- Botón para marcar como servido -->
+            <div class="btns_productos" *ngIf="item.preparar == 2">
+              <ion-button fill="clear" (click)="marcarServido(item.correlativo)">
+                <ion-icon name="checkmark-outline" style="color: red; font-size: 1.8rem;"></ion-icon>
+              </ion-button>
+            </div>
+
+            <!-- Ícono fijo cuando ya está marcado como servido -->
+            <div class="btns_productos" *ngIf="item.preparar == 3">
+              <ion-icon name="checkmark-circle" style="color: green; font-size: 1.8rem;"></ion-icon>
+            </div>
+
+
             </div>
           </ion-item>
         </ion-list>
@@ -90,10 +116,12 @@
       <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
       Preparar
     </ion-button>
-
+ <!--
     <ion-button color="danger" expand="full" (click)="imprimirPreCuenta()">
       <ion-icon name="close-circle-outline" slot="start"></ion-icon>
       Anular
-    </ion-button>
+    </ion-button> -->
   </div>
+
+</ng-container>
 </ion-content>

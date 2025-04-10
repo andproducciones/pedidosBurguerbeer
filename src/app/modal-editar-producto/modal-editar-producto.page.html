@@ -8,13 +8,16 @@
     </ion-buttons>
   </ion-toolbar>
   <ion-item>
-   
     <ion-label>{{ observacionesprevias }}</ion-label>
   </ion-item>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content [scrollEvents]="true">
   
+  <ion-item>
+    <ion-label position="stacked">Observaciones</ion-label>
+    <ion-textarea [(ngModel)]="observaciones"></ion-textarea>
+  </ion-item>
 
   <ion-list>
     <div *ngFor="let atributo of atributos">
@@ -30,14 +33,12 @@
       </ion-radio-group>
     </div>
   </ion-list>
-  <ion-item>
-    <ion-label position="stacked">Observaciones</ion-label>
-    <ion-textarea [(ngModel)]="observaciones"></ion-textarea>
-  </ion-item>
+
 </ion-content>
 
-<ion-footer class="fixed-footer">
- 
+<ion-footer >
+  <ion-toolbar>
     <ion-button expand="full" (click)="guardarCambios()">Guardar Cambios</ion-button>
-  
+  </ion-toolbar>
 </ion-footer>
+

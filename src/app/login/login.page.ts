@@ -4,6 +4,7 @@ import { AlertController, LoadingController } from '@ionic/angular';
 import { LoginService } from '../services/login/login.service';
 import { EncryptionService } from '../services/encriptacion/encriptacion.service';
 import { timeout } from 'rxjs/operators';
+import { ConexionService } from '../services/conexion/conexion.service';
 
 @Component({
   selector: 'app-login',
@@ -24,24 +25,37 @@ export class LoginPage {
     private router: Router,
     private alertController: AlertController,
     private encryptionService: EncryptionService,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private conexionService: ConexionService
   ) {}
 
-  async ionViewWillEnter() {
+  ionViewWillEnter() {
+    const conectado = this.conexionService.forzarVerificacionManual();
+  
+    if (!conectado) {
+      return;
+    }
+  
     const storedUserData = localStorage.getItem('userData');
-
+  
     if (storedUserData) {
       const userData = this.encryptionService.descifrarDatos(storedUserData);
-
+  
       if (userData) {
-        const lastRoute = localStorage.getItem('lastRoute') || '/pedidos';
-        this.router.navigate([lastRoute]);
-        localStorage.removeItem('lastRoute'); // Limpia la ruta guardada
+        localStorage.setItem('lastRoute', '/pedidos');
+        this.router.navigate(['/pedidos'], { replaceUrl: true });
+        //console.log('✅ Conexión y sesión válida: redirigiendo a /pedidos');
+        return;
       } else {
-        localStorage.removeItem('userData'); // Datos corruptos
+        localStorage.removeItem('userData');
+        //console.warn('❌ Datos de sesión corruptos: eliminados');
       }
     }
+  
+    //console.log('🟡 Conexión establecida, pero no hay sesión: se queda en login');
   }
+  
+  
 
   async login() {
     if (this.bloqueado) {
@@ -65,16 +79,15 @@ export class LoginPage {
       timeout(10000)
     ).subscribe(
       async response => {
-        await loading.dismiss();
-
         if (response.respuesta.estado === true) {
           const datosCifrados = this.encryptionService.cifrarDatos(response.data);
           localStorage.setItem('userData', datosCifrados);
+          localStorage.setItem('lastRoute', '/pedidos');
           this.intentosFallidos = 0;
 
-          const lastRoute = localStorage.getItem('lastRoute') || '/pedidos';
-          this.router.navigate([lastRoute]);
-          localStorage.removeItem('lastRoute');
+          this.router.navigate(['/pedidos'], { replaceUrl: true }).then(() => {
+            loading.dismiss();
+          });
 
         } else {
           this.intentosFallidos++;
@@ -82,20 +95,25 @@ export class LoginPage {
           if (this.intentosFallidos >= 3) {
             this.bloquearUsuario();
           }
+          await loading.dismiss();
         }
       },
       async error => {
         await loading.dismiss();
         console.error('Error detectado:', error);
 
-        if (error.status === 0) {
+        if (error.name === 'TimeoutError') {
+          this.showAlert('Error', 'La solicitud al servidor ha tardado demasiado.');
+          return;
+        }
+
+        // ⚠️ Evita mostrar alerta si ya fuiste redirigido por el Interceptor a /sin-conexion
+        if (error.status === 0 && this.router.url !== '/sin-conexion') {
           this.showAlert('Error', 'No se pudo conectar con el servidor. Por favor, verifica tu conexión.');
         } else if (error.status >= 400 && error.status < 500) {
           this.showAlert('Error', `Error del cliente: ${error.statusText || 'Solicitud incorrecta.'}`);
         } else if (error.status >= 500) {
           this.showAlert('Error', 'Error en el servidor. Por favor, intenta más tarde.');
-        } else if (error.name === 'TimeoutError') {
-          this.showAlert('Error', 'La solicitud al servidor ha tardado demasiado.');
         } else {
           this.showAlert('Error', `Error desconocido: ${JSON.stringify(error)}`);
         }
